@@ -49,8 +49,8 @@ function loopAnnotation(obj) {
 
       if (/_is_/.test(key)) {
         const arr = key.split('_is_');
-        const realkey = arr[1];
-        const annotation = arr[0];
+        const realkey = arr[0];
+        const annotation = arr[1];
 
         if (valuetype === '[object Object]') {
           result.push({ key: realkey, children: loopAnnotation(value), annotation });
@@ -132,7 +132,7 @@ function formatJson(value, mark) {
       const lineValue = colonArr[1];
       const lineAnnotation = annotationArr[1];
       // 行结果
-      result += doubleQuotation(`"${lineAnnotation}_is_${lineKey}":${lineValue}`);
+      result += doubleQuotation(`"${lineKey}_is_${lineAnnotation}":${lineValue}`);
       continue;
     }
 
@@ -144,7 +144,7 @@ function formatJson(value, mark) {
       const lineKey = deleteQuotation(colonArr[0]);
       const lineValue = colonArr[1];
       // 行结果
-      result += doubleQuotation(`"_is_${lineKey}":${lineValue}`);
+      result += doubleQuotation(`"${lineKey}_is_":${lineValue}`);
       continue;
     }
 
