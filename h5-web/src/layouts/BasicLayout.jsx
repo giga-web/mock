@@ -240,6 +240,7 @@ function formatValueBatch(value) {
 }
 
 /* 对象转平面数组 */
+/*
 function objectToArray({ level, result, value }) {
   const type = Object.prototype.toString.call(value);
 
@@ -318,6 +319,29 @@ function objectToArray({ level, result, value }) {
 
   }
 }
+*/
+
+/* 对象转平面数组 */
+function objectToArray(value) {
+  const result = [];
+
+  const type = Object.prototype.toString.call(value);
+
+  if (type === '[object Object]') {
+    Object.keys(value).forEach(key => {
+      const item = value[key];
+
+      result.push({
+        key,
+        value: item.value,
+        annotation: item.annotation,
+      })
+    });
+  }
+
+  return result;
+}
+
 
 class BasicLayout extends React.Component {
   constructor(props) {
@@ -344,32 +368,34 @@ class BasicLayout extends React.Component {
   }
 
   renderTable(value) {
-    const arr = [];
+    const type = Object.prototype.toString.call(value);
 
-    objectToArray({ level: 0, result: arr, value });
+    if (type === '[object Object]') {
 
-    console.log(arr);
+      const arr = objectToArray(value);;
 
-    return (
-      <table border="1">
-        <thead>
-          <tr>
-            <th>键</th>
-            <th>值</th>
-            <th>注释</th>
-          </tr>
-        </thead>
-        <tbody>
+      console.log(arr);
+
+      return (
+        <div>
           {arr.map((item, index) => (
-            <tr key={index}>
-              <td>{item.key}</td>
-              <td>{item.value}</td>
-              <td>{item.annotation}</td>
-            </tr>
+            <div key={index}>
+              <div>{item.key}</div>
+              <div>{this.renderTable(item.value)}</div>
+              <div>{item.annotation}</div>
+            </div>
           ))}
-        </tbody>
-      </table>
-    )
+        </div>
+      )
+
+    } else if (type === '[object Array]') {
+      return '[object Array]';
+
+    } else {
+      return value;
+
+    }
+
   }
 
   render() {
