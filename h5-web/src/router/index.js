@@ -19,13 +19,13 @@ export default () => {
 
         <Route
           path={'/auth/login'}
-          exact={''}
+          exact={true}
           component={AuthLayout}
         />
 
         <Route
           path={'/'}
-          exact={''}
+          exact={true}
           component={BasicLayout}
         />
 
