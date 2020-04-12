@@ -20,54 +20,70 @@ function deleteQuotation(value) {
 
 // 递归注释
 function loopAnnotation(obj) {
+  const result = [];
+
   const type = Object.prototype.toString.call(obj);
 
   if (type === '[object Array]') {
     // 数组
     obj.forEach(item => {
-      // 递归注释
-      loopAnnotation(item);
+      const itemtype = Object.prototype.toString.call(item);
+
+      if (itemtype === '[object Object]') {
+        result.push(loopAnnotation(item));
+
+      } else if (itemtype === '[object Array]') {
+        result.push(loopAnnotation(item));
+
+      } else {
+        result.push(item);
+      }
+      
     });
 
   } else if (type === '[object Object]') {
     // 对象
     Object.keys(obj).forEach(key => {
       const value = obj[key];
+      const valuetype = Object.prototype.toString.call(value);
 
       if (/_is_/.test(key)) {
         const arr = key.split('_is_');
         const realkey = arr[1];
         const annotation = arr[0];
 
-        obj[realkey] = { value, annotation };
+        if (valuetype === '[object Object]') {
+          result.push({ key: realkey, children: loopAnnotation(value), annotation });
 
-        delete obj[key];
+        } else if (valuetype === '[object Array]') {
+          result.push({ key: realkey, children: loopAnnotation(value), annotation });
+
+        } else {
+          result.push({ key: realkey, value, annotation });
+
+        }
       }
-      
-      // 递归注释
-      loopAnnotation(value);
     });
-    
+  
   }
 
+  return result;
 }
 
 /* JSON 化 */
 function resultJson(value) {
-  let result;
+  let result = [];
 
   // 替换多余的逗号
   const temp = value.replace(/(,})/g, '}').replace(/(,])/g, ']');
   // console.log(temp);
 
   try {
-    result = JSON.parse(temp);
+    // 递归注释
+    result = loopAnnotation(JSON.parse(temp));
   } catch (err) {
     console.log(err);
   }
-
-  // 递归注释
-  loopAnnotation(result);
 
   return result;
 }
@@ -234,7 +250,8 @@ function formatValueBatch(value) {
   // console.log(arr);
 
   const result = arr.map(item => formatValue(item));
-  console.log(JSON.stringify(result));
+  // console.log(JSON.stringify(result));
+  console.log(result);
 
   return result;
 }
@@ -415,8 +432,6 @@ class BasicLayout extends React.Component {
                 <div className={styles.url}>{item.url}</div>
                 <div>desc</div>
                 <div>{item.desc}</div>
-                <div>response</div>
-                {this.renderTable(item.response)}
               </div>
             ))}
           </div>
