@@ -1,7 +1,20 @@
-import React, { useEffect } from 'react';
+import React, { Fragment } from 'react';
 
 /* 样式 */
 import styles from './BasicLayout.m.less';
+
+/* 对象/数组 */
+const typestart = {
+  '[object Object]': '{',
+  '[object Array]': '[',
+};
+
+const typeend = {
+  '[object Object]': '}',
+  '[object Array]': ']',
+};
+
+const separator = ',';
 
 /* 替换空格 */
 function trimAll(str, rep) {
@@ -18,58 +31,6 @@ function deleteQuotation(value) {
   return value.replace(/['|"]/g, '');
 }
 
-// 递归注释
-function loopAnnotation(obj) {
-  const result = [];
-
-  const type = Object.prototype.toString.call(obj);
-
-  if (type === '[object Array]') {
-    // 数组
-    obj.forEach(item => {
-      const itemtype = Object.prototype.toString.call(item);
-
-      if (itemtype === '[object Object]') {
-        result.push(loopAnnotation(item));
-
-      } else if (itemtype === '[object Array]') {
-        result.push(loopAnnotation(item));
-
-      } else {
-        result.push(item);
-      }
-      
-    });
-
-  } else if (type === '[object Object]') {
-    // 对象
-    Object.keys(obj).forEach(key => {
-      const value = obj[key];
-      const valuetype = Object.prototype.toString.call(value);
-
-      if (/_is_/.test(key)) {
-        const arr = key.split('_is_');
-        const realkey = arr[0];
-        const annotation = arr[1];
-
-        if (valuetype === '[object Object]') {
-          result.push({ key: realkey, children: loopAnnotation(value), annotation });
-
-        } else if (valuetype === '[object Array]') {
-          result.push({ key: realkey, children: loopAnnotation(value), annotation });
-
-        } else {
-          result.push({ key: realkey, value, annotation });
-
-        }
-      }
-    });
-  
-  }
-
-  return result;
-}
-
 /* JSON 化 */
 function resultJson(value) {
   let result = [];
@@ -80,7 +41,7 @@ function resultJson(value) {
 
   try {
     // 递归注释
-    result = loopAnnotation(JSON.parse(temp));
+    result = JSON.parse(temp);
   } catch (err) {
     console.log(err);
   }
@@ -252,120 +213,74 @@ function formatValueBatch(value) {
   const result = arr.map(item => formatValue(item));
   // console.log(JSON.stringify(result));
   console.log(result);
+  console.log('------------------------------------------------------------');
 
   return result;
 }
 
-/* 对象转平面数组 */
-/*
-function objectToArray({ level, result, value }) {
-  const type = Object.prototype.toString.call(value);
+/* 转换值 */
+function convertValue(value) {
+  if (value === null) {
+    return `null`;
 
-  if (type === '[object Object]') {
+  } else if (value === true) {
+    return `true`;
 
-    Object.keys(value).forEach(valuekey => {
-      const item = value[valuekey];
-      const valuetype = Object.prototype.toString.call(item.value);
+  } else if (value === false) {
+    return `false`;
 
-      let valuepush = item.value;
+  } else if (typeof value === 'string') {
+    return `"${value}"`;
 
-      // 对象及对象数组时，设置值为 understand
-      if (valuetype === '[object Object]') {
-        valuepush = undefined;
-
-      } else if (valuetype === '[object Array]') {
-
-        if (/\[object Object\]/.test(valuepush.toString())) {
-          valuepush = undefined;
-        }
-
-      }
-      
-      result.push({
-        level,
-        key: valuekey,
-        value: valuepush,
-        annotation: item.annotation,
-      });
-
-      // 对象及对象数组时，进行下一级插入
-      if (valuepush === undefined) {
-        objectToArray({ level: level + 1, result, value: item.value });
-      }
-
-    });
-
-  } else if (type === '[object Array]') {
-    // console.log(value);
-    
-    value.forEach(itemvalue => {
-
-      Object.keys(itemvalue).forEach(valuekey => {
-        const item = itemvalue[valuekey];
-        const valuetype = Object.prototype.toString.call(item.value);
-
-        let valuepush = item.value;
-
-        // 对象及对象数组时，设置值为 understand
-        if (valuetype === '[object Object]') {
-          valuepush = undefined;
-
-        } else if (valuetype === '[object Array]') {
-
-          if (/\[object Object\]/.test(valuepush.toString())) {
-            valuepush = undefined;
-          }
-
-        }
-        
-        result.push({
-          level,
-          key: valuekey,
-          value: valuepush,
-          annotation: item.annotation,
-        });
-
-        // 对象及对象数组时，进行下一级插入
-        if (valuepush === undefined) {
-          objectToArray({ level: level + 1, result, value: item.value });
-        }
-
-      });
-
-    });
+  } else if (typeof value === 'number') {
+    return value;
 
   }
+
+  return value;
 }
-*/
 
-/* 对象转平面数组 */
-function objectToArray(value) {
-  const result = [];
-
-  const type = Object.prototype.toString.call(value);
-
-  if (type === '[object Object]') {
-    Object.keys(value).forEach(key => {
-      const item = value[key];
-
-      result.push({
-        key,
-        value: item.value,
-        annotation: item.annotation,
-      })
-    });
+const defaultValue = `
+登录
+GET /api/auth/login
+#headers
+[
+  {
+    "token": 'fafoslj9f4s4f5asfas454fdsf', // 主键
   }
-
-  return result;
+]
+#params
+{
+  id: 1, // 主键
+  name: "abc", // 名称
+  code: null, // 编码
+  list: [1,2,3], // 列表
+  listmore: [[1],[2],[3]], // 列表更多
 }
-
+#response
+{
+  code: 0, // 主键
+  "data": {
+    pagesize: 1, // 主键
+    entities: [ // 实体列表
+      {
+        id: 1, // 主键
+        name: "长沙" // 名称
+      },
+    ]
+  },
+  message: "success" // 消息
+}
+#desc
+发动机附加费
+`;
 
 class BasicLayout extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      value: '',
-      format: [],
+      value: defaultValue,
+      format: formatValueBatch(defaultValue),
     };
 
     this.handleChange = this.handleChange.bind(this);
@@ -384,35 +299,108 @@ class BasicLayout extends React.Component {
     event.preventDefault();
   }
 
-  renderTable(value) {
-    const type = Object.prototype.toString.call(value);
+  renderTable(tree, level = 0) {
+    // 异常返回
+    if (tree === undefined) { return null; }
 
-    if (type === '[object Object]') {
+    // 缩进
+    const indent = { textIndent: level * 24 + 24 };
 
-      const arr = objectToArray(value);;
+    // 类型
+    const type = Object.prototype.toString.call(tree);
 
-      console.log(arr);
+    if (type === '[object Array]') {
 
       return (
-        <div>
-          {arr.map((item, index) => (
-            <div key={index}>
-              <div>{item.key}</div>
-              <div>{this.renderTable(item.value)}</div>
-              <div>{item.annotation}</div>
-            </div>
-          ))}
-        </div>
-      )
+        <Fragment>
 
-    } else if (type === '[object Array]') {
-      return '[object Array]';
+          {/* 开始符号 */}
+          {level === 0 && <div className={styles.codeline}>{typestart['[object Array]']}</div>}
+          
+          {/* 数组 */}
+          {tree.map((item, index) => {
+            // 类型-元素
+            const itemtype = Object.prototype.toString.call(item);
+
+            // 需要循环
+            const needloop = (itemtype === '[object Array]' || itemtype === '[object Object]');
+
+            // 不是最后一项
+            const notlast = (index < tree.length - 1);
+
+            if (needloop) {
+              return (
+                <Fragment key={index}>
+                  <div className={styles.codeline} style={indent}>{typestart[itemtype]}</div>
+                  {this.renderTable(item, level + 1)}
+                  <div className={styles.codeline} style={indent}>{typeend[itemtype]}{notlast && separator}</div>
+                </Fragment>
+              );
+            }
+
+            return (
+              <div key={index} className={styles.codeline} style={indent}>
+                {convertValue(item)}{notlast && separator}
+              </div>
+            );
+
+          })}
+          
+          {/* 结束符号 */}
+          {level === 0 && <div className={styles.codeline}>{typeend['[object Array]']}</div>}
+
+        </Fragment>
+      );
+    
+    } else if (type === '[object Object]') {
+
+      return (
+        <Fragment>
+          {/* 开始符号 */}
+          {level === 0 && <div className={styles.codeline}>{typestart['[object Object]']}</div>}
+
+          {/* 对象 */}
+          {Object.keys(tree).map((key, index) => {
+            const [ realkey, annotation ] = key.split('_is_');
+            const value = tree[key];
+
+            // 类型-值
+            const valuetype = Object.prototype.toString.call(value);
+
+            // 需要循环
+            const needloop = (valuetype === '[object Array]' || valuetype === '[object Object]');
+
+            // 不是最后一项
+            const notlast = (index < Object.keys(tree).length - 1);
+
+            return (
+              <Fragment key={index}>
+                <div className={styles.codeline}>
+                  <div className={styles.keyvalue}>
+                    <div className={styles.key} style={indent}>{realkey}:</div>
+                    {needloop || <div className={styles.value}>{convertValue(value)}{notlast && separator}</div>}
+                    {needloop && <div>{typestart[valuetype]}</div>}
+                  </div>
+                  <div className={styles.annotation}>{annotation}</div>
+                </div>
+                {needloop && this.renderTable(value, level + 1)}
+                {needloop && <div className={styles.codeline} style={indent}>{typeend[valuetype]}{notlast && separator}</div>}
+              </Fragment>
+            );
+
+          })}
+
+          {/* 结束符号 */}
+          {level === 0 && <div className={styles.codeline}>{typeend['[object Object]']}</div>}
+        </Fragment>
+      );
 
     } else {
-      return value;
+
+      console.log('出现未考虑到的情况');
+      return null;
 
     }
-
   }
 
   render() {
@@ -430,8 +418,14 @@ class BasicLayout extends React.Component {
                 <div className={styles.title}>{item.title}</div>
                 <div className={styles.method}>{item.method}</div>
                 <div className={styles.url}>{item.url}</div>
-                <div>desc</div>
+                <div className={styles.codetitle}>desc</div>
                 <div>{item.desc}</div>
+                {<div className={styles.codetitle}>headers</div>}
+                {<div className={styles.codebox}>{this.renderTable(item.headers)}</div>}
+                {<div className={styles.codetitle}>params</div>}
+                {<div className={styles.codebox}>{this.renderTable(item.params)}</div>}
+                {<div className={styles.codetitle}>response</div>}
+                {<div className={styles.codebox}>{this.renderTable(item.response)}</div>}
               </div>
             ))}
           </div>
