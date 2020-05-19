@@ -1,0 +1,14 @@
+{
+  "mongodb": {
+    // 数据库配置
+    "url": "mongodb://172.19.0.1:27017",
+    "opts": {
+      "useNewUrlParser": true,
+      "useUnifiedTopology": true,
+      "auth": {
+        "user": "root",
+        "password": "123456"
+      }
+    }
+  }
+}
