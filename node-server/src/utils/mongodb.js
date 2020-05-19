@@ -6,7 +6,7 @@ module.exports = (app) => {
   MongoClient.connect(mongodbConfig.url, mongodbConfig.opts)
     .then((client) => {
       app.mongo = client;
-      console.log('数据库服务连接成功');
+      console.log(mongodbConfig.url + '数据库服务连接成功');
 
       // 创建数据库
       // use db_mock
@@ -25,7 +25,7 @@ module.exports = (app) => {
         });
     })
     .catch((err) => {
-      console.log('数据库服务连接失败', err);
+      console.log(mongodbConfig.url + '数据库服务连接失败', err);
       process.exit(-1);
     });
 };

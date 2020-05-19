@@ -1,14 +1,1 @@
-{
-  "mongodb": {
-    // 数据库配置
-    "url": "mongodb://localhost:27017",
-    "opts": {
-      "useNewUrlParser": true,
-      "useUnifiedTopology": true,
-      "auth": {
-        "user": "root",
-        "password": "123456"
-      }
-    }
-  }
-}
+{}

@@ -1,3 +1,5 @@
+console.log(process.env.NODE_ENV);
+
 const Koa = require('koa');
 const onerror = require('koa-onerror');
 const bodyparser = require('koa-bodyparser');

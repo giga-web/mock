@@ -1,7 +1,7 @@
 {
   "mongodb": {
     // 数据库配置
-    "url": "mongodb://172.0.0.2:27017",
+    "url": "mongodb://localhost:27017",
     "opts": {
       "useNewUrlParser": true,
       "useUnifiedTopology": true,
